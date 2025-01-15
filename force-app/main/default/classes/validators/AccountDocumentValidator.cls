@@ -14,22 +14,27 @@ public class AccountDocumentValidator {
     public void validate(List<Account> accounts) {
         List<Account> filteredAccounts = this.accountFilter.byNotEmptyDocument(accounts);
 
-        List<Account> individualAccounts = this.accountFilter.byRecordType(filteredAccounts, SObjects.getRecordTypeId('Account', 'IndividualPerson'));
-        validateIndividualDocument(individualAccounts);
+        if(filteredAccounts.isEmpty()) {
+            return;
+        }
 
-        List<Account> juridicalAccounts = this.accountFilter.byRecordType(filteredAccounts, SObjects.getRecordTypeId('Account', 'JuridicalPerson'));
-        validateJuridicalDocument(juridicalAccounts);
+        validateIndividualDocument(filteredAccounts);
+        validateJuridicalDocument(filteredAccounts);
     }
 
     private void validateIndividualDocument(List<Account> accounts) {
-        for(Account account : accounts) {
-            if(!this.cpfValidator.isValid(account.CpfCnpj__c)) {
-                account.addError('Invalid Document');
-            }
-        }
+        List<Account> individualAccounts = this.accountFilter.byRecordType(filteredAccounts, SObjects.getRecordTypeId('Account', 'IndividualPerson'));
+        
+        validateDocument(individualAccounts);
     }
 
     private void validateJuridicalDocument(List<Account> accounts) {
+        List<Account> juridicalAccounts = this.accountFilter.byRecordType(filteredAccounts, SObjects.getRecordTypeId('Account', 'JuridicalPerson'));
+
+        validateDocument(juridicalAccounts);
+    }
+
+    private void validateDocument(List<Account> accounts) {
         for(Account account : accounts) {
             if(!this.cnpjValidator.isValid(account.CpfCnpj__c)) {
                 account.addError('Invalid Document');
